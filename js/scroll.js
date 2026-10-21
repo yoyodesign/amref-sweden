@@ -814,20 +814,13 @@
 (function () {
   'use strict';
 
-  /* Reduced motion: leave the lines fully drawn and reveal the stat numbers
-     straight away (they are hidden in CSS until .is-revealed is added). */
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    ['stat-num-1', 'stat-num-2', 'stat-num-3'].forEach(function (id) {
-      var el = document.getElementById(id);
-      if (el) el.classList.add('is-revealed');
-    });
-    return;
-  }
-
   var svg = document.getElementById('stats-lines-svg');
   var canvas = document.querySelector('.stats__canvas');
   if (!svg || !canvas) return;
 
+  var prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  var SVG_W = 685;
   var SVG_H = 1200;
 
   /* ---- Tuning ----
@@ -837,11 +830,162 @@
      Try values between 1.5 and 3.0. */
   var LINE_SPEED = 1.7;
 
+  /* ── Boxes fit their numbers ───────────────────────────────────────
+     The red line is one zig-zag route; three stretches of it form a box
+     around each number.  The route is rebuilt from where each number
+     actually sits, so every box fits its own number.  Coordinates are in
+     the boxes' own flat (untilted) space — SVG units rotated by --tilt.
+
+     Spacing around each number (matches the original artwork):
+       PAD_LEFT / PAD_RIGHT  — left / right of the number
+       PAD_TOP / PAD_BOTTOM  — above / below it
+     ROUTE — the fixed distances of the connecting lines (see buildRoute). */
+  var TILT = (14.5 * Math.PI) / 180;
+  var PAD_LEFT = [17, 14, 18];
+  var PAD_RIGHT = 22;
+  var PAD_TOP = [3, 5, 3];
+  var PAD_BOTTOM = [3, 1, 3];
+  var ROUTE = {
+    leadIn: 45, /* line comes down this far above box 1 */
+    overhang: 69, /* box 1's top runs on past its right edge, then drops */
+    overhang2: 40, /* …and always clears box 2's right edge by at least this */
+    channel: 46, /* that drop turns left this far above box 2 */
+    outer: 61, /* the long drop on the left sits this far left of box 3 */
+    tail: 251, /* the last line turns right this far below box 3 */
+    spiralX: 281, /* where the end spiral sits */
+  };
+  var HALF = 6; /* half the stroke width — segments overlap by this at corners */
+
+  var ux = Math.cos(TILT);
+  var uy = -Math.sin(TILT);
+  var vx = Math.sin(TILT);
+  var vy = Math.cos(TILT);
+
+  /* flat box space ↔ SVG units */
+  function toSvg(p) {
+    return [p[0] * ux + p[1] * vx, p[0] * uy + p[1] * vy];
+  }
+  function toFlat(p) {
+    return [p[0] * ux + p[1] * uy, p[0] * vx + p[1] * vy];
+  }
+
+  /* Each number's box in flat space.  Items are rotated about their own
+     centre, which in flat space is just an offset (rotation is the same). */
+  function numberBoxes() {
+    var scale = canvas.clientWidth / SVG_W;
+    function offset(el) {
+      var x = 0;
+      var y = 0;
+      while (el && el !== canvas) {
+        x += el.offsetLeft;
+        y += el.offsetTop;
+        el = el.offsetParent;
+      }
+      return [x / scale, y / scale];
+    }
+    return Array.from(canvas.querySelectorAll('.stats__item')).map(function (item) {
+      var io = offset(item);
+      var c = [io[0] + item.offsetWidth / scale / 2, io[1] + item.offsetHeight / scale / 2];
+      var fc = toFlat(c);
+      var dx = fc[0] - c[0];
+      var dy = fc[1] - c[1];
+      var num = item.querySelector('.stats__number');
+      var o = offset(num);
+      return [o[0] + dx, o[1] + dy, o[0] + num.offsetWidth / scale + dx, o[1] + num.offsetHeight / scale + dy];
+    });
+  }
+
+  /* The route as 16 straight segments (sp1–sp16, in draw order) plus where
+     the spiral (sp17) starts. */
+  function buildRoute(n) {
+    var L1 = n[0][0] - PAD_LEFT[0], T1 = n[0][1] - PAD_TOP[0], R1 = n[0][2] + PAD_RIGHT, B1 = n[0][3] + PAD_BOTTOM[0];
+    var L2 = n[1][0] - PAD_LEFT[1], T2 = n[1][1] - PAD_TOP[1], R2 = n[1][2] + PAD_RIGHT, B2 = n[1][3] + PAD_BOTTOM[1];
+    var L3 = n[2][0] - PAD_LEFT[2], T3 = n[2][1] - PAD_TOP[2], R3 = n[2][2] + PAD_RIGHT, B3 = n[2][3] + PAD_BOTTOM[2];
+    var D = Math.max(R1 + ROUTE.overhang, R2 + ROUTE.overhang2);
+    var C2 = T2 - ROUTE.channel;
+    var O3 = L3 - ROUTE.outer;
+    var E = B3 + ROUTE.tail;
+    var S = Math.max(ROUTE.spiralX, R3 + ROUTE.overhang2);
+    /* Each segment runs HALF past its corners so joins are filled */
+    var segs = [
+      [[R1, T1 - ROUTE.leadIn], [R1, B1 + HALF]], /* 1  down into box 1 (its right side) */
+      [[R1 + HALF, B1], [L1 - HALF, B1]], /*         2  box 1 bottom */
+      [[L1, B1 + HALF], [L1, T1 - HALF]], /*         3  box 1 left */
+      [[L1 - HALF, T1], [D + HALF, T1]], /*          4  box 1 top, running on */
+      [[D, T1 - HALF], [D, C2 + HALF]], /*           5  drop past box 1 */
+      [[D + HALF, C2], [L2 - HALF, C2]], /*          6  across above box 2 */
+      [[L2, C2 - HALF], [L2, B2 + HALF]], /*         7  box 2 left */
+      [[L2 - HALF, B2], [R2 + HALF, B2]], /*         8  box 2 bottom */
+      [[R2, B2 + HALF], [R2, T2 - HALF]], /*         9  box 2 right */
+      [[R2 + HALF, T2], [O3 - HALF, T2]], /*        10  box 2 top, running left */
+      [[O3, T2 - HALF], [O3, B3 + HALF]], /*        11  the long drop on the left */
+      [[O3 - HALF, B3], [R3 + HALF, B3]], /*        12  box 3 bottom */
+      [[R3, B3 + HALF], [R3, T3 - HALF]], /*        13  box 3 right */
+      [[R3 + HALF, T3], [L3 - HALF, T3]], /*        14  box 3 top */
+      [[L3, T3 - HALF], [L3, E + HALF]], /*         15  box 3 left, then down */
+      [[L3 - HALF, E], [S, E]], /*                  16  along to the spiral (which overlaps its end) */
+    ];
+    return { segs: segs, spiralStart: [S, E] };
+  }
+
+  /* The spiral keeps its shape; it's moved so it starts where line 16 ends */
+  var spiralEl = document.getElementById('sp17');
+  var spiralFlat = null;
+  if (spiralEl) {
+    var nums = spiralEl.getAttribute('d').match(/-?\d*\.?\d+/g).map(Number);
+    spiralFlat = [];
+    for (var si = 0; si < nums.length; si += 2) spiralFlat.push(toFlat([nums[si], nums[si + 1]]));
+  }
+
+  function d(points) {
+    return points
+      .map(function (p, i) {
+        var q = toSvg(p);
+        return (i ? 'L' : 'M') + q[0].toFixed(2) + ' ' + q[1].toFixed(2);
+      })
+      .join('');
+  }
+
+  function layout() {
+    var boxes = numberBoxes();
+    if (boxes.length !== 3) return;
+    var route = buildRoute(boxes);
+    route.segs.forEach(function (seg, i) {
+      var el = document.getElementById('sp' + (i + 1));
+      if (el) el.setAttribute('d', d(seg));
+    });
+    if (spiralEl && spiralFlat) {
+      /* keep the spiral's original offset from the end of line 16, which in
+         the artwork ended at (281, 1102) in flat space */
+      var dx = route.spiralStart[0] - 281;
+      var dy = route.spiralStart[1] - 1102;
+      spiralEl.setAttribute(
+        'd',
+        d(spiralFlat.map(function (p) { return [p[0] + dx, p[1] + dy]; })),
+      );
+    }
+  }
+
+  svg.setAttribute('overflow', 'visible'); /* long numbers may push lines past the canvas */
+
+  /* Reduced motion: lines fully drawn, numbers shown straight away (they are
+     hidden in CSS until .is-revealed is added). */
+  if (prefersReducedMotion) {
+    layout();
+    ['stat-num-1', 'stat-num-2', 'stat-num-3'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.classList.add('is-revealed');
+    });
+    window.addEventListener('resize', layout, { passive: true });
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(layout);
+    return;
+  }
+
   /* 17 individual paths in draw order (sp1 = first drawn, sp17 = last).
      triggerEl fires its stat number the first time that path hits fraction=1.
-       356K  → sp4  completes (line 4)
-       25.4M → sp10 completes (line 10)
-       43    → sp15 completes (line 15)                               */
+       box 1 → sp4  completes (its top)
+       box 2 → sp10 completes (its top)
+       box 3 → sp15 completes (its left side)                          */
   var paths = [
     { id: 'sp1' },
     { id: 'sp2' },
@@ -866,25 +1010,23 @@
     return p;
   });
 
-  /* Measure lengths, then assign sequential yStart/yEnd. */
-  var totalLen = 0;
-  paths.forEach(function (p) {
-    p.len = p.el ? p.el.getTotalLength() : 0;
-    totalLen += p.len;
-  });
-
-  var cursor = 0;
-  paths.forEach(function (p) {
-    p.yStart = cursor;
-    cursor += (p.len / totalLen) * SVG_H;
-    p.yEnd = cursor;
-  });
-
-  paths.forEach(function (p) {
-    if (!p.el) return;
-    p.el.style.strokeDasharray = p.len;
-    p.el.style.strokeDashoffset = p.len; /* fully hidden */
-  });
+  /* Rebuild the route, then measure lengths and assign sequential yStart/yEnd. */
+  function measure() {
+    layout();
+    var totalLen = 0;
+    paths.forEach(function (p) {
+      p.len = p.el ? p.el.getTotalLength() : 0;
+      totalLen += p.len;
+    });
+    var cursor = 0;
+    paths.forEach(function (p) {
+      p.yStart = cursor;
+      cursor += (p.len / totalLen) * SVG_H;
+      p.yEnd = cursor;
+      if (p.el) p.el.style.strokeDasharray = p.len;
+    });
+    update();
+  }
 
   function update() {
     var cRect = canvas.getBoundingClientRect();
@@ -906,8 +1048,10 @@
   }
 
   window.addEventListener('scroll', update, { passive: true });
-  window.addEventListener('resize', update, { passive: true });
-  update();
+  window.addEventListener('resize', measure, { passive: true });
+  measure();
+  /* Number widths depend on the web font — rebuild once it's loaded */
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(measure);
 })();
 
 /* ============================================================
