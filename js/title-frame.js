@@ -46,6 +46,8 @@
   var STEP_AFTER_LINE2 = 9; /* step piece starts this far past line 2 */
   var RIGHT_AFTER_LINE1 = -10; /* right piece starts this far past line 1 */
   var POLE_X = 41; /* the right piece's vertical line, from its left edge */
+  var MIN_ZONE = 24; /* zone lines are never shorter than this, so pieces never
+                        butt straight onto each other (that leaves hairline seams) */
   var SUBTITLE_INSET = 15; /* subtitle ends this far before the pole */
   var SUBTITLE_Y = 271.9; /* subtitle top */
   var EDGE_TOL = 1.5; /* how close to a piece edge a line end must be */
@@ -187,8 +189,8 @@
     var l2 = lines[1] ? lineWidthEm(lines[1]) * FONT_UNITS : 0;
 
     /* Piece positions (frame units) */
-    var stepX = TEXT_ORIGIN[0] + l2 + STEP_AFTER_LINE2;
-    var rightX = Math.max(stepX + STEP.width, TEXT_ORIGIN[0] + l1 + RIGHT_AFTER_LINE1);
+    var stepX = Math.max(LEFT.width + MIN_ZONE, TEXT_ORIGIN[0] + l2 + STEP_AFTER_LINE2);
+    var rightX = Math.max(stepX + STEP.width + MIN_ZONE, TEXT_ORIGIN[0] + l1 + RIGHT_AFTER_LINE1);
     var width = rightX + RIGHT.width;
 
     /* Units → px, shrinking if the frame would run past the hero */
