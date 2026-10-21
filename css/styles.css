@@ -1553,9 +1553,11 @@ button {
    so reduced-motion users get this same static stacked layout instead, per
    WCAG 2.3.3. See js/scroll.js + js/animate.js for the matching JS branches
    (prefersReducedMotion forces the same "mobile" code paths at any width).
+   It also applies when JavaScript is off (scripting: none) — the pan needs JS,
+   so those visitors get the same stacked layout (see the block at the end).
    overflow: visible lets the mobile SVG layers extend upward into the hero.
    overflow-x is handled by html/body { overflow-x: hidden } already. */
-@media (max-width: 1024px), (prefers-reduced-motion: reduce) {
+@media (max-width: 1024px), (prefers-reduced-motion: reduce), (scripting: none) {
   html,
   body {
     overflow-x: hidden;
@@ -3156,5 +3158,75 @@ h4,
   .story-promo__content {
     width: 100%;
     padding-inline: var(--gutter);
+  }
+}
+
+/* ============================================================
+   JAVASCRIPT OFF — static fallback
+   With scripting off nothing runs the reveal animations, line drawing or
+   the horizontal pan, so: use the stacked layout (see the dark-section
+   media query above), show everything that normally starts hidden, and
+   show story titles as plain tilted text (their maze frame is built by JS).
+   ============================================================ */
+@media (scripting: none) {
+  /* Text that rises in letter by letter / line by line */
+  .char,
+  .line-inner {
+    transform: none !important;
+    opacity: 1 !important;
+    animation: none !important;
+  }
+
+  /* Anything waiting for a reveal or a line draw */
+  [data-reveal-media],
+  [data-reveal-text],
+  .fade-in-text,
+  [data-draw-path-enter],
+  [data-draw-path-scroll],
+  .footer-cta__canvas .btn,
+  .text-media__media[data-reveal-media] {
+    opacity: 1 !important;
+    clip-path: none !important;
+    -webkit-clip-path: none !important;
+    animation: none !important;
+    transform: none;
+  }
+
+  /* Homepage: the "5 Stories One Mission" logo lines are built by JS, so drop
+     the space reserved for them and show the section heading as text */
+  .lines-mobile-top {
+    display: none !important;
+  }
+  .cards-pan {
+    padding-top: 80px !important;
+  }
+  .cards-pan > h2.visually-hidden {
+    position: static;
+    width: auto;
+    height: auto;
+    margin: 0 auto 48px;
+    padding: 0 var(--gutter);
+    overflow: visible;
+    clip: auto;
+    white-space: normal;
+    text-align: center;
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: 36px;
+    line-height: 1;
+    text-transform: uppercase;
+    color: var(--clr-white);
+  }
+
+  /* Story pages: plain tilted title in the original artwork's position */
+  .title-frame {
+    position: static;
+    opacity: 1;
+  }
+  .story-hero__art--fit .story-hero__text {
+    transform: rotate(-14.5deg);
+  }
+  .story-hero__art--fit .story-hero__subtitle {
+    width: 150%;
   }
 }
