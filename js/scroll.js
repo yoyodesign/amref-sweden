@@ -955,10 +955,11 @@
       if (el) el.setAttribute('d', d(seg));
     });
     if (spiralEl && spiralFlat) {
-      /* keep the spiral's original offset from the end of line 16, which in
-         the artwork ended at (281, 1102) in flat space */
-      var dx = route.spiralStart[0] - 281;
-      var dy = route.spiralStart[1] - 1102;
+      /* Place the spiral so its first (downward) stroke forms a clean corner
+         with the end of line 16: its right edge flush with the line's end
+         and its top flush with the line's top — no lip */
+      var dx = route.spiralStart[0] - HALF - spiralFlat[0][0];
+      var dy = route.spiralStart[1] - HALF - spiralFlat[0][1];
       spiralEl.setAttribute(
         'd',
         d(spiralFlat.map(function (p) { return [p[0] + dx, p[1] + dy]; })),
