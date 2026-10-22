@@ -8,10 +8,10 @@
 
      [ left ]—— zone 1 ——[ step ]—— zone 2 ——[ right ]
 
-     zone 1  stretches to the width of title line 2, so the step sits
-             just after the second line.
-     zone 2  stretches by however much longer line 1 is, so the right
-             piece sits just after the first line (0 if line 2 is longer).
+     zone 1  stretches to the width of title line 1, so the step (where
+             the top edge drops down to line 2) sits just after line 1.
+     zone 2  stretches by however much longer line 2 is, so the right
+             piece sits just after the second line.
 
    Each zone line runs from a line end ("stub") on one piece's edge to
    the matching stub on the next piece, so the pieces only need their
@@ -43,8 +43,8 @@
   var FONT_UNITS = 78.4; /* heading font size in frame units */
   var INNER_CORNER = [132, 56]; /* inner top-left corner of the left piece */
   var TEXT_ORIGIN = [151.5, 74.1]; /* where the heading's top-left sits */
-  var STEP_AFTER_LINE2 = 9; /* step piece starts this far past line 2 */
-  var RIGHT_AFTER_LINE1 = -10; /* right piece starts this far past line 1 */
+  var STEP_AFTER_LINE1 = 9; /* step piece starts this far past line 1 */
+  var RIGHT_AFTER_LINE2 = -10; /* right piece starts this far past line 2 */
   var POLE_X = 41; /* the right piece's vertical line, from its left edge */
   var MIN_ZONE = 24; /* zone lines are never shorter than this, so pieces never
                         butt straight onto each other (that leaves hairline seams) */
@@ -54,8 +54,8 @@
   var MATCH_TOL = 4; /* max height difference when pairing line ends */
   var JOIN_OVERLAP = 1.5; /* zone lines run this far into each piece, hiding seams */
   var TOP_MARGIN = 0; /* px the frame may come to the top of the hero art */
-  var TOP_LINE_Y = 32; /* the frame's outer top line — the pole above it may
-                          run off the top of the hero, as in the original */
+  var TOP_CORNER = [56, 26]; /* the right piece's outer top-right corner — the
+                                frame's highest point, kept inside the hero */
 
   /* Where the inner corner sits in the hero art, as a fraction of its size
      (desktop / mobile ≤540px — matches the original artwork). */
@@ -99,7 +99,7 @@
       var pts = [];
       for (var i = 0; i < tokens.length; i++) {
         var t = tokens[i];
-        if (/[A-Z]/i.test(t)) {
+        if (/^[MLHVZ]$/i.test(t)) {
           cmd = t.toUpperCase();
           continue;
         }
@@ -189,8 +189,8 @@
     var l2 = lines[1] ? lineWidthEm(lines[1]) * FONT_UNITS : 0;
 
     /* Piece positions (frame units) */
-    var stepX = Math.max(LEFT.width + MIN_ZONE, TEXT_ORIGIN[0] + l2 + STEP_AFTER_LINE2);
-    var rightX = Math.max(stepX + STEP.width + MIN_ZONE, TEXT_ORIGIN[0] + l1 + RIGHT_AFTER_LINE1);
+    var stepX = Math.max(LEFT.width + MIN_ZONE, TEXT_ORIGIN[0] + l1 + STEP_AFTER_LINE1);
+    var rightX = Math.max(stepX + STEP.width + MIN_ZONE, TEXT_ORIGIN[0] + l2 + RIGHT_AFTER_LINE2);
     var width = rightX + RIGHT.width;
 
     /* Units → px, shrinking if the frame would run past the hero */
@@ -203,11 +203,10 @@
     var cx = INNER_CORNER[0] * cos - INNER_CORNER[1] * sin;
     var cy = INNER_CORNER[0] * sin + INNER_CORNER[1] * cos;
     /* Long titles: keep the frame inside the art's right edge (bottom-right
-       corner) and top edge (the outer top line's right end rises with the
-       tilt; the pole above it may run off the top). */
-    var topX = rightX;
+       corner) and top edge (the top-right corner rises with the tilt). */
+    var topX = rightX + TOP_CORNER[0];
     var maxRight = ((1 - anchor[0]) * artW) / (width * cos - HEIGHT * sin - cx);
-    var maxTop = (anchor[1] * artH - TOP_MARGIN) / (cy - (topX * sin + TOP_LINE_Y * cos));
+    var maxTop = (anchor[1] * artH - TOP_MARGIN) / (cy - (topX * sin + TOP_CORNER[1] * cos));
     u = Math.min(u, maxRight, maxTop);
     var shrink = u / (cssFont / FONT_UNITS);
     if (shrink < 1) {
@@ -294,7 +293,7 @@
     var cmd = '';
     for (var i = 0; i < tokens.length; i++) {
       var t = tokens[i];
-      if (/[A-Z]/i.test(t)) {
+      if (/^[MLHVZ]$/i.test(t)) {
         cmd = t.toUpperCase();
         if (cmd === 'Z' && cur) cur.push(cur[0].slice());
         continue;

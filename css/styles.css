@@ -720,9 +720,9 @@ button {
 .hero__subtitle {
   margin-top: 22px;
   font-family: var(--font-body);
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 600;
-  line-height: 22px;
+  line-height: 26px;
   color: var(--clr-black);
   text-align: center;
   white-space: nowrap;
@@ -792,7 +792,7 @@ button {
 }
 
 .dark-section__text-mobile .dark-text__line + .dark-text__line {
-  margin-top: -4px; /* ← tune this to adjust line spacing */
+  margin-top: 0.04em; /* ← tune this to adjust line spacing */
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -831,7 +831,7 @@ button {
 }
 
 .dark-text__line + .dark-text__line {
-  margin-top: -0.08em; /* tight overlap matching original design */
+  margin-top: 0.3em; /* gap between the two lines, as in the design */
 }
 
 .dark-section__text .char {
@@ -999,9 +999,10 @@ button {
   font-weight: 600;
   letter-spacing: 0px;
   color: var(--clr-white);
-  max-width: 490px;
+  max-width: 360px;
   margin: 8px auto 0;
-  white-space: nowrap;
+  text-align: center;
+  text-wrap: balance; /* even line lengths when it wraps */
 }
 
 .story-card .btn {
@@ -1701,7 +1702,12 @@ button {
 
 @media (max-width: 540px) {
   .hero {
-    padding-bottom: 10%;
+    /* grows past the screen height when the copy needs it, so the lines
+       below always start under the subtitle */
+    height: auto;
+    min-height: calc(100svh - var(--nav-h, 0px));
+    /* room for the lines that rise into the hero (.lines-mobile-top) + a gap */
+    padding-bottom: calc(min(20vw, 75px) + 24px);
   }
 
   .hero__subtitle {
@@ -1710,8 +1716,8 @@ button {
 
   .hero__text-top > span.tilt,
   .hero__text-bottom > span.tilt {
-    font-size: clamp(36px, 10.5vw, 65px);
-    line-height: clamp(30px, 8.75vw, 54px);
+    font-size: clamp(33px, 9.5vw, 59px);
+    line-height: clamp(27px, 7.9vw, 49px);
     white-space: normal; /* long lines wrap at the spaces on phones */
   }
 

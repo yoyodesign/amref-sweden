@@ -20,12 +20,12 @@
   if (!darkSection || !track || !linesBg) return;
 
   /* SVG coordinate constants for the text overlay */
-  var TEXT_LOGO_LEFT = 255; /* left edge of text container in SVG units */
+  var TEXT_LOGO_LEFT = 272; /* left edge of text container in SVG units */
   var TEXT_LOGO_W = 1135; /* width of container in SVG units          */
   var TEXT_TOP_SVG = 613; /* top of text block in SVG units           */
   var TEXT_FONT_SVG = 80; /* font size in SVG units — tune here       */
   var TEXT_H_SVG = 153; /* height of the original 2-line block in SVG units */
-  var TEXT_MAX_EM = 6.2; /* widest line allowed, in ems — longer copy shrinks to fit */
+  var TEXT_MAX_EM = 6.3; /* widest line allowed, in ems — longer copy shrinks to fit */
 
   /* SVG_W — total design width in SVG units.  Recalculated in init() from the
      number of story cards (see cardsDesignWidth), so adding a card extends the
@@ -1112,8 +1112,8 @@
     right: 14.5, /* end of the widest line / button → right edge */
     bottom: 10, /* bottom of the button → bottom edge */
     mazeToButton: 21, /* maze's right end → button's left edge (minimum) */
-    stepToRight: 40, /* the step never gets closer than this to the right edge */
-    baseRun: 107, /* the short bottom line from the corner, before the maze */
+    stepToRight: 21, /* the step never gets closer than this to the right edge */
+    baseRun: 159, /* the short bottom line from the corner, before the maze */
     rightShort: 6, /* the right side stops this far above the bottom edge */
   };
   var HALF = 5; /* half the stroke width — segments overlap by this at corners */
@@ -1412,12 +1412,12 @@
      Derived from original fill path bounding box (x≈95–260, y≈487–650).
      Figma Mobile/H2: 36px, line-height 32px.
      All in SVG units — multiply by scale to get screen pixels. */
-  var MOB_TEXT_LEFT = 109; /* SVG units — tune left/right */
-  var MOB_TEXT_W = 145; /* SVG units — just wider than longest word */
-  var MOB_TEXT_TOP = 480; /* SVG units — top of text block */
+  var MOB_TEXT_LEFT = 110; /* SVG units — tune left/right */
+  var MOB_TEXT_W = 170; /* SVG units — just wider than longest word */
+  var MOB_TEXT_TOP = 475; /* SVG units — top of text block */
   var MOB_TEXT_FONT = 36; /* SVG units — Figma Mobile/H2  */
   var MOB_TEXT_H = 132; /* SVG units — height of the original 4-line block */
-  var MOB_TEXT_MAX_EM = 3.6; /* widest line allowed, in ems — longer copy shrinks to fit */
+  var MOB_TEXT_MAX_EM = 4.2; /* widest line allowed, in ems — longer copy shrinks to fit */
 
   var SVG_W = 375;
 
