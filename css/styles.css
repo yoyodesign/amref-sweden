@@ -578,13 +578,19 @@ button {
 .hero__text-bottom > span.tilt {
   display: block;
   font-family: var(--font-display);
-  font-size: clamp(32px, 7.5vw, 200px);
+  font-size: clamp(32px, 6.2vw, 200px);
   font-weight: 900;
-  line-height: clamp(28px, 6.25vw, 170px);
+  line-height: clamp(28px, 5.17vw, 170px);
   letter-spacing: -1px;
   text-transform: uppercase;
   color: var(--clr-red);
   text-align: center;
+  white-space: nowrap;
+}
+
+/* Keeps a word's letters together when a heading wraps */
+.word {
+  display: inline-block;
   white-space: nowrap;
 }
 
@@ -1702,10 +1708,11 @@ button {
     margin-top: 12px;
   }
 
-  .hero__text-top span,
-  .hero__text-bottom span {
-    font-size: clamp(44px, 12vw, 65px);
-    line-height: clamp(37px, 10vw, 54px);
+  .hero__text-top > span.tilt,
+  .hero__text-bottom > span.tilt {
+    font-size: clamp(36px, 10.5vw, 65px);
+    line-height: clamp(30px, 8.75vw, 54px);
+    white-space: normal; /* long lines wrap at the spaces on phones */
   }
 
   /* Hide donate, pull logo into flex flow so it sits left of Menu */

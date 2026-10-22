@@ -24,6 +24,8 @@
   var TEXT_LOGO_W = 1135; /* width of container in SVG units          */
   var TEXT_TOP_SVG = 613; /* top of text block in SVG units           */
   var TEXT_FONT_SVG = 80; /* font size in SVG units — tune here       */
+  var TEXT_H_SVG = 153; /* height of the original 2-line block in SVG units */
+  var TEXT_MAX_EM = 6.2; /* widest line allowed, in ems — longer copy shrinks to fit */
 
   /* SVG_W — total design width in SVG units.  Recalculated in init() from the
      number of story cards (see cardsDesignWidth), so adding a card extends the
@@ -527,6 +529,25 @@
   }
 
   /* ── Layout ─────────────────────────────────────────────── */
+  /* Shrink the logo text so its widest line is at most maxEm × its font
+     size, so longer (e.g. translated) copy still fits inside the logo.
+     Runs again once the web font has loaded, as that changes the widths. */
+  function fitLines(el, maxEm) {
+    var size = parseFloat(el.style.fontSize);
+    var widest = 0;
+    el.querySelectorAll('.dark-text__line').forEach(function (line) {
+      widest = Math.max(widest, line.scrollWidth);
+    });
+    if (widest > maxEm * size) el.style.fontSize = (size * maxEm * size) / widest + 'px';
+    if (document.fonts && !el.fitAfterFonts) {
+      el.fitAfterFonts = true;
+      document.fonts.ready.then(function () {
+        el.style.fontSize = size + 'px';
+        fitLines(el, maxEm);
+      });
+    }
+  }
+
   function init() {
     var VH = window.innerHeight;
     var VW = window.innerWidth;
@@ -557,10 +578,12 @@
     /* Position the text overlay in SVG coordinate space */
     if (darkText) {
       darkText.style.display = 'grid';
-      darkText.style.top = TEXT_TOP_SVG * svgScale + 'px';
       darkText.style.left = TEXT_LOGO_LEFT * svgScale + 'px';
       darkText.style.width = TEXT_LOGO_W * svgScale + 'px';
       darkText.style.fontSize = TEXT_FONT_SVG * svgScale + 'px';
+      fitLines(darkText, TEXT_MAX_EM);
+      /* Keep a shrunk block centred where the original 2 lines sat */
+      darkText.style.top = TEXT_TOP_SVG * svgScale + Math.max(0, TEXT_H_SVG * svgScale - darkText.offsetHeight) / 2 + 'px';
     }
     track.style.transform = 'translateX(0)';
     initStrokes();
@@ -1393,6 +1416,8 @@
   var MOB_TEXT_W = 145; /* SVG units — just wider than longest word */
   var MOB_TEXT_TOP = 480; /* SVG units — top of text block */
   var MOB_TEXT_FONT = 36; /* SVG units — Figma Mobile/H2  */
+  var MOB_TEXT_H = 132; /* SVG units — height of the original 4-line block */
+  var MOB_TEXT_MAX_EM = 3.6; /* widest line allowed, in ems — longer copy shrinks to fit */
 
   var SVG_W = 375;
 
@@ -1435,14 +1460,31 @@
     lead.setAttribute('d', lead.getAttribute('data-d').replace(/V\s*0\s*$/, 'V' + startY.toFixed(2)));
   }
 
+  /* Shrink the logo text so its widest line is at most maxEm × its font
+     size, so longer (e.g. translated) copy still fits inside the logo. */
+  function fitLines(el, maxEm) {
+    var size = parseFloat(el.style.fontSize);
+    var widest = 0;
+    el.querySelectorAll('.dark-text__line').forEach(function (line) {
+      widest = Math.max(widest, line.scrollWidth);
+    });
+    if (widest > maxEm * size) el.style.fontSize = (size * maxEm * size) / widest + 'px';
+  }
+
   function positionText() {
     if (!mobileText) return;
+    if (document.fonts && !positionText.waited) {
+      positionText.waited = true;
+      document.fonts.ready.then(positionText); /* the web font changes the widths */
+    }
     var sc = scaleOf();
     mobileText.style.display = 'block';
-    mobileText.style.top = MOB_TEXT_TOP * sc + 'px';
     mobileText.style.left = MOB_TEXT_LEFT * sc + 'px';
     mobileText.style.width = MOB_TEXT_W * sc + 'px';
     mobileText.style.fontSize = MOB_TEXT_FONT * sc + 'px';
+    fitLines(mobileText, MOB_TEXT_MAX_EM);
+    /* Keep a shrunk block centred where the original 4 lines sat */
+    mobileText.style.top = MOB_TEXT_TOP * sc + Math.max(0, MOB_TEXT_H * sc - mobileText.offsetHeight) / 2 + 'px';
   }
 
   function init() {
