@@ -3162,6 +3162,24 @@ h4,
 }
 
 /* ============================================================
+   ACCENT HEADROOM
+   The letter/line reveal masks use overflow: hidden so text can rise into
+   place from below — but that also cut off accents above the capitals
+   (Å Ä Ö É). Clip only the bottom and sides instead, and give the top
+   room: the reveal looks the same, accents show in full.
+   ============================================================ */
+.char-wrap,
+.dark-text__line,
+.stats__number .char-wrap,
+.stats__desc,
+.line-mask,
+.story-hero__heading-line,
+.story-hero__subtitle {
+  overflow: visible;
+  clip-path: inset(-0.45em 0 0 0);
+}
+
+/* ============================================================
    JAVASCRIPT OFF — static fallback
    With scripting off nothing runs the reveal animations, line drawing or
    the horizontal pan, so: use the stacked layout (see the dark-section
