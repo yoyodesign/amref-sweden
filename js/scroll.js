@@ -1063,15 +1063,179 @@
 (function () {
   'use strict';
 
+  var prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ── Frame fits the copy ─────────────────────────────────────────────
+     The red frame round "Now it's your turn" + the donate button is drawn
+     from where the heading lines and button actually sit, so it fits any
+     copy.  Coordinates are in the frame's own flat (untilted) space — SVG
+     units (430 × 330 viewBox) rotated by the -14.5° tilt.
+
+       left / top     — just outside the start of line 1
+       step           — the notch in the top edge sits just past line 1,
+                        dropping to just above line 2
+       right          — just past the wider of the later lines / the button
+       bottom         — just below the button
+       maze (dl7)     — fixed shape, kept in the bottom-left corner
+
+     Spacing matches the original artwork (GAP values below).          */
+  var SVG_W = 430;
+  var TILT = (14.5 * Math.PI) / 180;
+  var GAP = {
+    left: 11.5, /* left edge → start of line 1 */
+    top: 9, /* top edge → top of line 1 */
+    step: 15, /* end of line 1 → step */
+    stepDrop: 6, /* step's lower edge → top of line 2 */
+    right: 14.5, /* end of the widest line / button → right edge */
+    bottom: 10, /* bottom of the button → bottom edge */
+    mazeToButton: 21, /* maze's right end → button's left edge (minimum) */
+    stepToRight: 40, /* the step never gets closer than this to the right edge */
+    baseRun: 107, /* the short bottom line from the corner, before the maze */
+    rightShort: 6, /* the right side stops this far above the bottom edge */
+  };
+  var HALF = 5; /* half the stroke width — segments overlap by this at corners */
+  /* Where the original artwork's bottom-left corner was — the maze (dl7)
+     is moved relative to it */
+  var ORIGIN = [-9.5, 301];
+
+  var ux = Math.cos(TILT);
+  var uy = -Math.sin(TILT);
+  var vx = Math.sin(TILT);
+  var vy = Math.cos(TILT);
+  function toSvg(p) {
+    return [p[0] * ux + p[1] * vx, p[0] * uy + p[1] * vy];
+  }
+  function toFlat(p) {
+    return [p[0] * ux + p[1] * uy, p[0] * vx + p[1] * vy];
+  }
+  function d(points) {
+    return points
+      .map(function (p, i) {
+        var q = toSvg(p);
+        return (i ? 'L' : 'M') + q[0].toFixed(2) + ' ' + q[1].toFixed(2);
+      })
+      .join('');
+  }
+
+  /* How far a line's letters rise above a plain capital (accents such as
+     Å Ä Ö), in px — so the top edge can clear them. */
+  var measureCtx = document.createElement('canvas').getContext('2d');
+  function accentRise(line) {
+    var cs = getComputedStyle(line);
+    measureCtx.font = cs.fontWeight + ' ' + cs.fontSize + ' ' + cs.fontFamily;
+    var text = line.textContent.replace(/\s+/g, ' ').trim().toUpperCase();
+    var rise = measureCtx.measureText(text).actualBoundingBoxAscent - measureCtx.measureText('H').actualBoundingBoxAscent;
+    return Math.max(0, rise || 0);
+  }
+
+  /* Flat-space boxes for each heading line and the button.  The content is
+     rotated about its own centre, which in flat space is just an offset. */
+  function measure(canvas) {
+    var scale = canvas.clientWidth / SVG_W;
+    var inner = canvas.querySelector('.site-footer__cta-inner');
+    function offset(el) {
+      var x = 0;
+      var y = 0;
+      while (el && el !== canvas) {
+        x += el.offsetLeft;
+        y += el.offsetTop;
+        el = el.offsetParent;
+      }
+      return [x / scale, y / scale];
+    }
+    var io = offset(inner);
+    var c = [io[0] + inner.offsetWidth / scale / 2, io[1] + inner.offsetHeight / scale / 2];
+    var fc = toFlat(c);
+    var dx = fc[0] - c[0];
+    var dy = fc[1] - c[1];
+    var lines = Array.from(canvas.querySelectorAll('.footer-cta__heading-line')).map(function (line) {
+      var chars = line.querySelectorAll('.char-wrap');
+      var first = offset(chars[0]);
+      var lastEl = chars[chars.length - 1];
+      var last = offset(lastEl);
+      var top = offset(line)[1];
+      return [first[0] + dx, top + dy, last[0] + lastEl.offsetWidth / scale + dx, top + line.offsetHeight / scale + dy];
+    });
+    var btn = canvas.querySelector('.btn');
+    var bo = offset(btn);
+    var firstLine = canvas.querySelector('.footer-cta__heading-line');
+    return {
+      scale: scale,
+      lines: lines,
+      rise: firstLine ? accentRise(firstLine) / scale : 0,
+      btn: [bo[0] + dx, bo[1] + dy, bo[0] + btn.offsetWidth / scale + dx, bo[1] + btn.offsetHeight / scale + dy],
+    };
+  }
+
+  function layoutFrame(canvas) {
+    var paths = canvas.querySelectorAll('.footer-cta__lines path');
+    var maze = paths[6];
+    if (paths.length < 7) return;
+    if (!maze.__flat) {
+      var nums = maze.getAttribute('d').match(/-?\d*\.?\d+/g).map(Number);
+      maze.__flat = [];
+      for (var i = 0; i < nums.length; i += 2) maze.__flat.push(toFlat([nums[i], nums[i + 1]]));
+      maze.__right = Math.max.apply(null, maze.__flat.map(function (p) { return p[0]; })) - ORIGIN[0];
+    }
+    var inner = canvas.querySelector('.site-footer__cta-inner');
+
+    /* Keep the button clear of the maze: if it would reach it, widen the
+       content so the (right-aligned) button moves right. */
+    inner.style.minWidth = '';
+    var m = measure(canvas);
+    if (!m.lines.length) return;
+    var L = m.lines[0][0] - GAP.left;
+    var mazeEnd = L + maze.__right + GAP.mazeToButton;
+    if (m.btn[0] < mazeEnd) {
+      inner.style.minWidth = inner.offsetWidth + (mazeEnd - m.btn[0]) * m.scale + 'px';
+      m = measure(canvas);
+      L = m.lines[0][0] - GAP.left;
+    }
+
+    var l1 = m.lines[0];
+    var later = m.lines.slice(1);
+    var T = l1[1] - GAP.top - m.rise; /* clear any accents on line 1 */
+    var S = l1[2] + GAP.step;
+    var Y2 = later.length ? later[0][1] - GAP.stepDrop : l1[3];
+    var widest = Math.max.apply(null, later.map(function (l) { return l[2]; }).concat([m.btn[2], S + GAP.stepToRight - GAP.right]));
+    var R = widest + GAP.right;
+    var B = m.btn[3] + GAP.bottom;
+
+    var segs = [
+      [[L - HALF, B], [L + GAP.baseRun, B]], /*      dl1  bottom, from the corner to the maze */
+      [[L, B + HALF], [L, T - HALF]], /*            dl2  left side */
+      [[L - HALF, T], [S + HALF, T]], /*            dl3  top, up to the step */
+      [[S, T - HALF], [S, Y2 + HALF]], /*           dl4  step down */
+      [[S - HALF, Y2], [R + HALF, Y2]], /*          dl5  across to the right side */
+      [[R, Y2 - HALF], [R, B - GAP.rightShort]], /* dl6  right side */
+    ];
+    segs.forEach(function (seg, i) {
+      paths[i].setAttribute('d', d(seg));
+    });
+    var mx = L - ORIGIN[0];
+    var my = B - ORIGIN[1];
+    maze.setAttribute(
+      'd',
+      d(maze.__flat.map(function (p) { return [p[0] + mx, p[1] + my]; })),
+    );
+    canvas.querySelector('.footer-cta__lines').setAttribute('overflow', 'visible');
+  }
+
   /* Reduced motion: lines stay fully drawn; reveal heading and button
      immediately (both are hidden in CSS until .is-revealed is added). */
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+  if (prefersReducedMotion) {
     document.querySelectorAll('.footer-cta__canvas').forEach(function (canvas) {
+      layoutFrame(canvas);
       var heading = canvas.querySelector('.site-footer__cta-heading');
       var btn = canvas.querySelector('.btn');
       if (heading) heading.classList.add('is-revealed');
       if (btn) btn.classList.add('is-revealed');
     });
+    var relayout = function () {
+      document.querySelectorAll('.footer-cta__canvas').forEach(layoutFrame);
+    };
+    window.addEventListener('resize', relayout, { passive: true });
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(relayout);
     return;
   }
 
@@ -1088,23 +1252,37 @@
         return { el: el };
       });
 
-    var totalLen = 0;
-    paths.forEach(function (p) {
-      p.len = p.el.getTotalLength();
-      totalLen += p.len;
-      p.el.style.strokeDasharray = p.len;
-      p.el.style.strokeDashoffset = p.len;
-    });
+    var started = false;
+    var done = false;
 
-    var cursor = 0;
-    paths.forEach(function (p) {
-      p.tStart = cursor;
-      cursor += p.len / totalLen;
-      p.tEnd = cursor;
-    });
+    /* Rebuild the frame, then measure lengths for the draw-in */
+    function prepare() {
+      layoutFrame(canvas);
+      var totalLen = 0;
+      paths.forEach(function (p) {
+        p.len = p.el.getTotalLength();
+        totalLen += p.len;
+        if (done) {
+          p.el.style.strokeDasharray = '';
+          p.el.style.strokeDashoffset = '';
+        } else {
+          p.el.style.strokeDasharray = p.len;
+          if (!started) p.el.style.strokeDashoffset = p.len;
+        }
+      });
+      var cursor = 0;
+      paths.forEach(function (p) {
+        p.tStart = cursor;
+        cursor += p.len / totalLen;
+        p.tEnd = cursor;
+      });
+    }
+    prepare();
+    window.addEventListener('resize', prepare, { passive: true });
+    /* Line widths depend on the web font — rebuild once it's loaded */
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(prepare);
 
     var startTime = null;
-    var done = false;
 
     function animate(timestamp) {
       if (!startTime) startTime = timestamp;
@@ -1119,6 +1297,10 @@
         requestAnimationFrame(animate);
       } else if (!done) {
         done = true;
+        paths.forEach(function (p) {
+          p.el.style.strokeDasharray = '';
+          p.el.style.strokeDashoffset = '';
+        });
         heading.classList.add('is-revealed');
         btn.classList.add('is-revealed');
       }
@@ -1129,6 +1311,7 @@
         entries.forEach(function (entry) {
           if (entry.isIntersecting) {
             observer.unobserve(canvas);
+            started = true;
             requestAnimationFrame(animate);
           }
         });
