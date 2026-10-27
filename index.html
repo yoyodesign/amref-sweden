@@ -15,10 +15,9 @@
     <!-- Open Graph -->
     <meta property="og:title" content="Det är människor som gör förändring möjlig | Amref Health Africa" />
     <meta property="og:description" content="Möt människorna som med ditt stöd arbetar för att fler ska få tillgång till den vård och hälsa de har rätt till." />
-    <meta property="og:image" content="https://stories.amref.se/assets/images/shared-og-image.jpg" />
-    <!-- PLACEHOLDER domain: https://stories.amref.se/ is a suggestion, still to be
-         confirmed. Update og:url / og:image (and canonical) when it's final. -->
-    <meta property="og:url" content="https://stories.amref.se/" />
+    <meta property="og:image" content="https://berattelser.amref.se/assets/images/shared-og-image.jpg" />
+    <!-- Live domain (agreed with Amref Sweden): https://berattelser.amref.se/ -->
+    <meta property="og:url" content="https://berattelser.amref.se/" />
     <meta property="og:type" content="website" />
 
     <!-- Adobe Fonts (Neue Kabel) -->
@@ -28,7 +27,7 @@
     <link rel="preload" href="assets/images/video-poster.webp" as="image" />
 
     <!-- Site CSS -->
-    <link rel="stylesheet" href="css/styles.css?v=20261022j" />
+    <link rel="stylesheet" href="css/styles.css?v=20261027b" />
 
     <!-- GTM: replace GTM-XXXXXXX with real container ID -->
     <!-- <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-XXXXXXX');</script> -->
@@ -129,23 +128,20 @@
     >
       <div class="site-menu__inner">
         <ul class="site-menu__links">
-          <li data-line="purple">
-            <a href="story/coumba-aw/index.html" class="site-menu__link">Coumbas berättelse</a>
-          </li>
           <li data-line="yellow">
-            <a href="story/fanizo-simenti/index.html" class="site-menu__link">Fanizos berättelse</a>
+            <a href="arot-lemuya-pokotom/index.html" class="site-menu__link">Arots berättelse</a>
+          </li>
+          <li data-line="purple">
+            <a href="coumba-aw/index.html" class="site-menu__link">Coumbas berättelse</a>
           </li>
           <li data-line="blue">
-            <a href="story/precious-chipasha/index.html" class="site-menu__link">Precious berättelse</a>
+            <a href="precious-chipasha/index.html" class="site-menu__link">Precious berättelse</a>
           </li>
           <li data-line="green">
-            <a href="story/neema-basili/index.html" class="site-menu__link">Neemas berättelse</a>
+            <a href="neema-justus-basili/index.html" class="site-menu__link">Neemas berättelse</a>
           </li>
           <li data-line="terracotta">
-            <a href="story/vivian-nandi/index.html" class="site-menu__link">Vivians berättelse</a>
-          </li>
-          <li data-line="purple">
-            <a href="story/arot-lemuya-pokotom/index.html" class="site-menu__link">Arots berättelse</a>
+            <a href="vivian-nandi/index.html" class="site-menu__link">Vivians berättelse</a>
           </li>
         </ul>
 
@@ -331,7 +327,51 @@
               <!-- Each story is one self-contained block. data-line picks the
                    line pattern + colour (purple, yellow, blue, green, terracotta);
                    js/story-lines.js injects the matching SVGs into .story-card__media. -->
-              <!-- ── Story 1: Coumba Aw ── -->
+              <!-- ── Story 1: Arot Lemuya Pokotom ── -->
+              <li class="story-card" data-line="yellow" data-reveal-section>
+                <div class="story-card__media">
+                  <div class="story-card__image-wrap">
+                    <img
+                      src="assets/images/arot-backdrop.webp"
+                      alt=""
+                      class="story-card__backdrop"
+                      data-reveal-media
+                      loading="eager"
+                      width="980"
+                      height="660"
+                    />
+                    <img
+                      src="assets/images/arot.webp"
+                      alt="Arot Lemuya Pokotom, lokal hälsoarbetare i Turkana, Kenya"
+                      class="story-card__portrait"
+                      data-reveal-media
+                      loading="eager"
+                      width="980"
+                      height="660"
+                    />
+                  </div>
+                </div>
+                <div class="story-card__content">
+                  <div>
+                    <div class="story-card__name-wrap">
+                      <h3 class="story-card__name tilt" data-rollup data-rollup-delay-step="30">
+                        Arot Lemuya Pokotom
+                      </h3>
+                    </div>
+                    <p class="story-card__desc" data-reveal-text data-reveal-text-delay="300">
+                      Lokal hälsoarbetare i Turkana, Kenya
+                    </p>
+                  </div>
+                  <a
+                    href="arot-lemuya-pokotom/index.html"
+                    class="btn btn--story"
+                    data-reveal-text
+                    data-reveal-text-delay="300"
+                    >Arots berättelse</a
+                  >
+                </div>
+              </li>
+              <!-- ── Story 2: Coumba Aw ── -->
               <li class="story-card" data-line="purple" data-reveal-section>
                 <div class="story-card__media">
                   <div class="story-card__image-wrap">
@@ -367,7 +407,7 @@
                     </p>
                   </div>
                   <a
-                    href="story/coumba-aw/index.html"
+                    href="coumba-aw/index.html"
                     class="btn btn--story"
                     data-reveal-text
                     data-reveal-text-delay="300"
@@ -375,52 +415,6 @@
                   >
                 </div>
               </li>
-
-              <!-- ── Story 2: Fanizo Simenti ── -->
-              <li class="story-card" data-line="yellow" data-reveal-section>
-                <div class="story-card__media">
-                  <div class="story-card__image-wrap">
-                    <img
-                      src="assets/images/fanizo-backdrop.webp"
-                      alt=""
-                      class="story-card__backdrop"
-                      data-reveal-media
-                      loading="eager"
-                      width="1960"
-                      height="1320"
-                    />
-                    <img
-                      src="assets/images/fanizo.webp"
-                      alt="Fanizo Simenti, community health worker in Kasungu, Malawi"
-                      class="story-card__portrait"
-                      data-reveal-media
-                      loading="eager"
-                      width="1960"
-                      height="1320"
-                    />
-                  </div>
-                </div>
-                <div class="story-card__content">
-                  <div>
-                    <div class="story-card__name-wrap">
-                      <h3 class="story-card__name tilt" data-rollup data-rollup-delay-step="30">
-                        Fanizo Simenti
-                      </h3>
-                    </div>
-                    <p class="story-card__desc" data-reveal-text data-reveal-text-delay="300">
-                      Community health worker, Katenje, Kasungu, Malawi
-                    </p>
-                  </div>
-                  <a
-                    href="story/fanizo-simenti/index.html"
-                    class="btn btn--story"
-                    data-reveal-text
-                    data-reveal-text-delay="300"
-                    >Fanizos berättelse</a
-                  >
-                </div>
-              </li>
-
               <!-- ── Story 3: Precious Chipasha ── -->
               <li class="story-card" data-line="blue" data-reveal-section>
                 <div class="story-card__media">
@@ -457,7 +451,7 @@
                     </p>
                   </div>
                   <a
-                    href="story/precious-chipasha/index.html"
+                    href="precious-chipasha/index.html"
                     class="btn btn--story"
                     data-reveal-text
                     data-reveal-text-delay="300"
@@ -465,7 +459,6 @@
                   >
                 </div>
               </li>
-
               <!-- ── Story 4: Neema Justus Basili ── -->
               <li class="story-card" data-line="green" data-reveal-section>
                 <div class="story-card__media">
@@ -502,7 +495,7 @@
                     </p>
                   </div>
                   <a
-                    href="story/neema-basili/index.html"
+                    href="neema-justus-basili/index.html"
                     class="btn btn--story"
                     data-reveal-text
                     data-reveal-text-delay="300"
@@ -510,7 +503,6 @@
                   >
                 </div>
               </li>
-
               <!-- ── Story 5: Vivian Nandi ── -->
               <li class="story-card" data-line="terracotta" data-reveal-section>
                 <div class="story-card__media">
@@ -547,56 +539,11 @@
                     </p>
                   </div>
                   <a
-                    href="story/vivian-nandi/index.html"
+                    href="vivian-nandi/index.html"
                     class="btn btn--story"
                     data-reveal-text
                     data-reveal-text-delay="300"
                     >Vivians berättelse</a
-                  >
-                </div>
-              </li>
-
-              <!-- ── Story 6: Arot Lemuya Pokotom ── -->
-              <li class="story-card" data-line="yellow" data-reveal-section>
-                <div class="story-card__media">
-                  <div class="story-card__image-wrap">
-                    <img
-                      src="assets/images/coumba-backdrop.webp"
-                      alt=""
-                      class="story-card__backdrop"
-                      data-reveal-media
-                      loading="eager"
-                      width="980"
-                      height="660"
-                    />
-                    <img
-                      src="assets/images/coumba.webp"
-                      alt="Arot Lemuya Pokotom, lokal hälsoarbetare i Turkana, Kenya"
-                      class="story-card__portrait"
-                      data-reveal-media
-                      loading="eager"
-                      width="980"
-                      height="660"
-                    />
-                  </div>
-                </div>
-                <div class="story-card__content">
-                  <div>
-                    <div class="story-card__name-wrap">
-                      <h3 class="story-card__name tilt" data-rollup data-rollup-delay-step="30">
-                        Arot Lemuya Pokotom
-                      </h3>
-                    </div>
-                    <p class="story-card__desc" data-reveal-text data-reveal-text-delay="300">
-                      Lokal hälsoarbetare i Turkana, Kenya
-                    </p>
-                  </div>
-                  <a
-                    href="story/arot-lemuya-pokotom/index.html"
-                    class="btn btn--story"
-                    data-reveal-text
-                    data-reveal-text-delay="300"
-                    >Arots berättelse</a
                   >
                 </div>
               </li>
@@ -858,7 +805,7 @@
     <!-- Site JS -->
     <!-- ?v= forces browsers to fetch updated files — bump it when these change -->
     <script src="js/main.js?v=20261020r"></script>
-    <script src="js/story-patterns.js?v=20261022b"></script>
+    <script src="js/story-patterns.js?v=20261027a"></script>
     <script src="js/story-lines.js?v=20261020r"></script>
     <script src="js/scroll.js?v=20261022h"></script>
     <script src="js/animate.js?v=20261020r"></script>
