@@ -782,7 +782,7 @@ button {
   text-transform: uppercase;
   color: #fefefe;
   line-height: 1;
-  transform: rotate(-14.5deg);
+  transform: rotate(-15deg);
   transform-origin: center center;
 }
 
@@ -816,22 +816,19 @@ button {
   white-space: nowrap;
   text-align: left;
   display: none; /* shown only on desktop via JS (as a grid) */
-  /* Grid keeps the text block centred in the logo while the lines inside
-     are left-aligned to each other */
-  justify-content: center;
-  justify-items: start;
+  justify-items: start; /* lines left-aligned to each other */
   font-family: var(--font-display);
   font-weight: 900;
   letter-spacing: -0.02em;
   text-transform: uppercase;
   color: #fefefe;
   line-height: 1;
-  transform: rotate(-14.5deg);
+  transform: rotate(-16deg);
   transform-origin: center center;
 }
 
 .dark-text__line + .dark-text__line {
-  margin-top: 0.3em; /* gap between the two lines, as in the design */
+  margin-top: 0.1em; /* gap between the two lines, as in the design */
 }
 
 .dark-section__text .char {

@@ -20,12 +20,10 @@
   if (!darkSection || !track || !linesBg) return;
 
   /* SVG coordinate constants for the text overlay */
-  var TEXT_LOGO_LEFT = 272; /* left edge of text container in SVG units */
-  var TEXT_LOGO_W = 1135; /* width of container in SVG units          */
-  var TEXT_TOP_SVG = 613; /* top of text block in SVG units           */
-  var TEXT_FONT_SVG = 80; /* font size in SVG units — tune here       */
-  var TEXT_H_SVG = 153; /* height of the original 2-line block in SVG units */
-  var TEXT_MAX_EM = 6.3; /* widest line allowed, in ems — longer copy shrinks to fit */
+  var TEXT_LOGO_LEFT = 588; /* left edge of text block in SVG units */
+  var TEXT_TOP_SVG = 611; /* top of text block in SVG units       */
+  var TEXT_FONT_SVG = 60; /* font size in SVG units — tune here   */
+  var TEXT_MAX_EM = 8.6; /* widest line allowed, in ems — longer copy shrinks to fit */
 
   /* SVG_W — total design width in SVG units.  Recalculated in init() from the
      number of story cards (see cardsDesignWidth), so adding a card extends the
@@ -579,11 +577,9 @@
     if (darkText) {
       darkText.style.display = 'grid';
       darkText.style.left = TEXT_LOGO_LEFT * svgScale + 'px';
-      darkText.style.width = TEXT_LOGO_W * svgScale + 'px';
+      darkText.style.top = TEXT_TOP_SVG * svgScale + 'px';
       darkText.style.fontSize = TEXT_FONT_SVG * svgScale + 'px';
       fitLines(darkText, TEXT_MAX_EM);
-      /* Keep a shrunk block centred where the original 2 lines sat */
-      darkText.style.top = TEXT_TOP_SVG * svgScale + Math.max(0, TEXT_H_SVG * svgScale - darkText.offsetHeight) / 2 + 'px';
     }
     track.style.transform = 'translateX(0)';
     initStrokes();
@@ -1412,12 +1408,12 @@
      Derived from original fill path bounding box (x≈95–260, y≈487–650).
      Figma Mobile/H2: 36px, line-height 32px.
      All in SVG units — multiply by scale to get screen pixels. */
-  var MOB_TEXT_LEFT = 110; /* SVG units — tune left/right */
+  var MOB_TEXT_LEFT = 106; /* SVG units — tune left/right */
   var MOB_TEXT_W = 170; /* SVG units — just wider than longest word */
-  var MOB_TEXT_TOP = 475; /* SVG units — top of text block */
+  var MOB_TEXT_TOP = 476; /* SVG units — top of text block */
   var MOB_TEXT_FONT = 36; /* SVG units — Figma Mobile/H2  */
   var MOB_TEXT_H = 132; /* SVG units — height of the original 4-line block */
-  var MOB_TEXT_MAX_EM = 4.2; /* widest line allowed, in ems — longer copy shrinks to fit */
+  var MOB_TEXT_MAX_EM = 4.55; /* widest line allowed, in ems — longer copy shrinks to fit */
 
   var SVG_W = 375;
 
@@ -1455,7 +1451,15 @@
     if (!lead) return;
     var sc = scaleOf();
     if (!sc) return;
-    var exitY = svgTop.getBoundingClientRect().top + LOGO_EXIT_Y * sc;
+    /* Meet the logo line wherever the export ends it (lowest path end) */
+    var endY = LOGO_EXIT_Y;
+    var ends = Array.prototype.map.call(svgTop.querySelectorAll('path'), function (p) {
+      return p.getPointAtLength(p.getTotalLength()).y;
+    });
+    /* …but not past the SVG's bottom edge, where the line is clipped */
+    if (ends.length) endY = Math.min(Math.max.apply(null, ends), svgTop.viewBox.baseVal.height || LOGO_EXIT_Y);
+    /* Overlap by 1 unit so no hairline seam shows at the join */
+    var exitY = svgTop.getBoundingClientRect().top + (endY - 1) * sc;
     var startY = (exitY - first.getBoundingClientRect().top) / sc;
     lead.setAttribute('d', lead.getAttribute('data-d').replace(/V\s*0\s*$/, 'V' + startY.toFixed(2)));
   }
